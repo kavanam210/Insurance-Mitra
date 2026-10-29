@@ -72,10 +72,6 @@ manual shared-index rebuild action.
 
 ## Tests
 
-```powershell
-pytest -q
-```
-
 Install the test and legacy-app dependencies, then run the test suite:
 
 ```powershell
