@@ -216,6 +216,7 @@
       async function readApiResponse(response) {
         const apiError = (message) => Object.assign(new Error(message), { name: "ApiResponseError" });
         const body = await response.text().catch(() => "");
+        const contentType = response.headers.get("content-type") || "(missing content type)";
         let payload = null;
         if (body.trim()) {
           try {
@@ -225,15 +226,28 @@
           }
         }
 
+        const bodyPreview = body
+          .replace(/(api[-_ ]?key|authorization|access[-_ ]?token|password|secret)(\s*[:=]\s*|\s+)[^\s,;"']+/gi, "$1=[REDACTED]")
+          .replace(/\bBearer\s+\S+|\bAIza[0-9A-Za-z_-]{20,}|\bAQ\.[0-9A-Za-z._-]{8,}/gi, "[REDACTED]")
+          .slice(0, 240);
+        const logResponseFailure = () => console.error("Insurance Mitra API returned an unexpected response", {
+          url: response.url || "/api/ask",
+          status: response.status,
+          contentType,
+          bodyPreview,
+        });
+
         if (!response.ok) {
           const apiMessage = payload?.ok === false && typeof payload.error?.message === "string"
             ? payload.error.message
-            : "Insurance Mitra couldn't complete that request. Please try again.";
+            : `The answer service returned HTTP ${response.status} (${contentType}). Please try again; if it continues, check Vercel Function Logs.`;
+          if (!payload || payload.ok !== false) logResponseFailure();
           throw apiError(apiMessage);
         }
 
         if (!payload || payload.ok !== true || !payload.data || typeof payload.data.answer !== "string") {
-          throw apiError("Insurance Mitra received an unexpected response. Please try again.");
+          logResponseFailure();
+          throw apiError(`The answer service returned an unexpected response (HTTP ${response.status}, ${contentType}). Check Vercel Function Logs if this continues.`);
         }
         return payload.data;
       }
