@@ -1,0 +1,7 @@
+[project]
+name = "insurance-mitra"
+version = "1.0.0"
+requires-python = ">=3.12,<3.14"
+
+[tool.vercel]
+entrypoint = "api.app:app"

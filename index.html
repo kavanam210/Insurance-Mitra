@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f2f4ef" />
+    <meta name="description" content="Ask clear questions about insurance, grounded in an educational guide." />
+    <title>Insurance Mitra | Clear answers, grounded in your guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1c3028;
+        --ink-soft: #52635a;
+        --leaf: #244b3b;
+        --leaf-dark: #19382d;
+        --leaf-pale: #e4eee6;
+        --paper: #f2f4ef;
+        --white: #fffefa;
+        --line: #dce3db;
+        --rust: #b94f35;
+        --rust-pale: #f8e9e3;
+        --shadow: 0 12px 32px rgb(35 61 47 / 8%);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        color: var(--ink);
+        background-color: var(--paper);
+        background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgb(45 77 57 / 3%) 32px), repeating-linear-gradient(90deg, transparent 0 31px, rgb(45 77 57 / 3%) 32px);
+        font-family: "DM Sans", sans-serif;
+        font-size: 15px;
+      }
+
+      button, textarea { font: inherit; }
+      button { color: inherit; }
+      .shell { max-width: 1440px; min-height: 100vh; margin: 0 auto; padding: 0 36px; }
+      .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: 0; }
+      .brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; color: var(--white); background: var(--leaf); font-size: 13px; }
+      .top-note { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 13px; }
+      .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4b8a5c; box-shadow: 0 0 0 3px #4b8a5c22; }
+      .workspace { min-height: calc(100vh - 76px); display: grid; grid-template-columns: 276px minmax(0, 1fr); }
+      aside { padding: 34px 25px 28px 0; border-right: 1px solid var(--line); }
+      .eyebrow { margin: 0 0 12px; color: var(--rust); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+      aside h2 { margin: 0 0 24px; font-family: "DM Serif Display", Georgia, serif; font-size: 25px; font-weight: 400; }
+      .guide-label { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; color: var(--ink-soft); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+      .guide-label span:first-child { width: 7px; height: 7px; border-radius: 2px; background: var(--rust); }
+      .guide-title { margin: 0 0 22px; font-size: 14px; font-weight: 600; }
+      .topic-list { margin: 0; padding: 0; list-style: none; }
+      .topic-list li { padding: 10px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 13px; line-height: 1.4; }
+      .privacy-note { margin-top: 28px; padding: 15px 0 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 12px; line-height: 1.6; }
+      .privacy-note strong { display: block; margin-bottom: 5px; color: var(--ink); font-size: 12px; }
+      main { min-width: 0; max-width: 940px; width: 100%; margin: 0 auto; padding: 42px 44px 30px; display: flex; flex-direction: column; }
+      .intro { padding-bottom: 24px; border-bottom: 1px solid var(--line); animation: arrive 420ms ease-out both; }
+      .intro h1 { max-width: 650px; margin: 0; font-family: "DM Serif Display", Georgia, serif; font-size: 38px; font-weight: 400; line-height: 1.13; }
+      .intro p { max-width: 660px; margin: 12px 0 0; color: var(--ink-soft); line-height: 1.65; }
+      .disclaimer { margin-top: 16px; padding: 11px 14px; border-left: 3px solid var(--rust); background: rgb(255 254 250 / 75%); color: #5b554f; font-size: 12px; line-height: 1.5; }
+      .conversation { flex: 1; min-height: 260px; padding: 25px 0 14px; }
+      .message { display: flex; gap: 12px; max-width: 760px; margin: 0 0 18px; animation: arrive 250ms ease-out both; }
+      .message.user { margin-left: auto; flex-direction: row-reverse; }
+      .avatar { flex: 0 0 32px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: var(--leaf-dark); background: var(--leaf-pale); font-size: 11px; font-weight: 700; }
+      .message.user .avatar { color: white; background: var(--leaf); }
+      .message-body { min-width: 0; max-width: min(680px, calc(100% - 44px)); }
+      .message-label { margin: 1px 0 6px; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
+      .message-text { padding: 13px 15px; border: 1px solid var(--line); border-radius: 3px 12px 12px 12px; background: var(--white); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .message.user .message-text { border-color: var(--leaf); border-radius: 12px 3px 12px 12px; color: white; background: var(--leaf); }
+      .sources { margin-top: 9px; }
+      .sources summary { width: fit-content; color: var(--leaf); cursor: pointer; font-size: 12px; font-weight: 700; }
+      .source-item { margin-top: 8px; padding: 11px 12px; border-left: 2px solid #7fa68a; background: #edf2eb; color: var(--ink-soft); font-size: 12px; line-height: 1.55; white-space: pre-wrap; }
+      .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 22px 44px; }
+      .suggestions button { padding: 8px 11px; border: 1px solid #bdcfc0; border-radius: 6px; background: rgb(255 254 250 / 80%); color: var(--leaf-dark); cursor: pointer; font-size: 12px; text-align: left; transition: background 140ms ease, border-color 140ms ease, transform 140ms ease; }
+      .suggestions button:hover { transform: translateY(-1px); border-color: var(--leaf); background: var(--leaf-pale); }
+      .composer { position: sticky; bottom: 0; padding: 12px 0 4px; background: linear-gradient(0deg, var(--paper) 80%, rgb(242 244 239 / 0%)); }
+      .composer-box { display: flex; align-items: flex-end; gap: 10px; padding: 11px; border: 1px solid #b9c9bc; border-radius: 9px; background: var(--white); box-shadow: var(--shadow); }
+      .composer textarea { width: 100%; min-height: 48px; max-height: 150px; resize: vertical; border: 0; outline: 0; color: var(--ink); background: transparent; line-height: 1.5; }
+      .composer textarea::placeholder { color: #87948b; }
+      .send { flex: 0 0 42px; width: 42px; height: 42px; display: grid; place-items: center; border: 0; border-radius: 7px; color: white; background: var(--rust); cursor: pointer; transition: background 140ms ease, transform 140ms ease; }
+      .send:hover:not(:disabled) { transform: translateY(-1px); background: #9e402b; }
+      .send:disabled { cursor: wait; opacity: 0.55; }
+      .send svg { width: 19px; height: 19px; }
+      .composer-hint { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; color: #758279; font-size: 11px; }
+      .error { border-color: #e7bdb0; background: var(--rust-pale); color: #7e3324; }
+      .loading .message-text { color: var(--ink-soft); }
+      .footer { margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line); color: #758279; font-size: 11px; line-height: 1.5; }
+      @keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+      @media (max-width: 900px) {
+        .shell { padding: 0 22px; }
+        .workspace { grid-template-columns: 220px minmax(0, 1fr); }
+        aside { padding-right: 18px; }
+        main { padding: 34px 24px 24px; }
+      }
+      @media (max-width: 680px) {
+        .shell { padding: 0 16px; }
+        .topbar { height: 64px; }
+        .top-note { font-size: 11px; }
+        .workspace { min-height: calc(100vh - 64px); display: block; }
+        aside { display: none; }
+        main { padding: 28px 0 20px; }
+        .intro h1 { font-size: 32px; }
+        .intro p { font-size: 14px; }
+        .conversation { min-height: 240px; padding-top: 20px; }
+        .suggestions { margin-left: 0; }
+        .suggestions button { flex: 1 1 46%; }
+        .composer-hint span:first-child { max-width: 70%; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">IM</span><span>Insurance Mitra</span></div>
+        <div class="top-note"><span class="status-dot" aria-hidden="true"></span><span>Education guide connected</span></div>
+      </header>
+      <div class="workspace">
+        <aside aria-label="Knowledge guide">
+          <p class="eyebrow">Reference library</p>
+          <h2>One guide.<br />Clearer decisions.</h2>
+          <div class="guide-label"><span aria-hidden="true"></span><span>Available source</span></div>
+          <p class="guide-title">Insurance knowledge guide</p>
+          <ul class="topic-list">
+            <li>Premiums, deductibles and co-payments</li>
+            <li>Waiting periods and exclusions</li>
+            <li>Claims, documents and delays</li>
+            <li>Reading policy wording</li>
+          </ul>
+          <div class="privacy-note"><strong>Private documents</strong>This deployment answers from the education guide only. Do not enter policy numbers, personal details, or other sensitive information.</div>
+        </aside>
+        <main>
+          <section class="intro" aria-labelledby="page-title">
+            <p class="eyebrow">Insurance, made clearer</p>
+            <h1 id="page-title">Your policy questions, in plain language.</h1>
+            <p>Ask about common insurance terms and processes. Answers are grounded in the guide, with the relevant passages shown alongside.</p>
+            <div class="disclaimer">Educational information only. It does not determine coverage, claim approval, or legal or financial outcomes. Your complete policy wording and applicable rules control.</div>
+          </section>
+          <section id="conversation" class="conversation" aria-live="polite" aria-label="Conversation">
+            <article class="message assistant">
+              <div class="avatar" aria-hidden="true">IM</div>
+              <div class="message-body">
+                <div class="message-label">Insurance Mitra</div>
+                <div class="message-text">Hello. What would you like to understand about insurance today?</div>
+              </div>
+            </article>
+          </section>
+          <nav class="suggestions" aria-label="Suggested questions">
+            <button type="button">What is a deductible?</button>
+            <button type="button">How do waiting periods work?</button>
+            <button type="button">What documents may a claim need?</button>
+          </nav>
+          <form id="ask-form" class="composer">
+            <div class="composer-box">
+              <textarea id="question" name="question" rows="2" maxlength="1200" placeholder="Ask an insurance question..." aria-label="Ask an insurance question" required></textarea>
+              <button id="send" class="send" type="submit" title="Send message" aria-label="Send message">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+              </button>
+            </div>
+            <div class="composer-hint"><span>Answers use only relevant passages from the education guide.</span><span id="counter">0 / 1200</span></div>
+          </form>
+          <footer class="footer">Check the full policy schedule, wording and endorsements. Confirm policy-specific questions with your insurer.</footer>
+        </main>
+      </div>
+    </div>
+    <script>
+      const form = document.querySelector("#ask-form");
+      const input = document.querySelector("#question");
+      const conversation = document.querySelector("#conversation");
+      const send = document.querySelector("#send");
+      const counter = document.querySelector("#counter");
+
+      function addMessage(role, text, sources = [], isError = false) {
+        const article = document.createElement("article");
+        article.className = `message ${role}`;
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = role === "user" ? "YOU" : "IM";
+        const body = document.createElement("div");
+        body.className = "message-body";
+        const label = document.createElement("div");
+        label.className = "message-label";
+        label.textContent = role === "user" ? "You" : "Insurance Mitra";
+        const content = document.createElement("div");
+        content.className = `message-text${isError ? " error" : ""}`;
+        content.textContent = text;
+        body.append(label, content);
+
+        if (sources.length) {
+          const details = document.createElement("details");
+          details.className = "sources";
+          const summary = document.createElement("summary");
+          summary.textContent = `View ${sources.length} guide passage${sources.length === 1 ? "" : "s"}`;
+          details.append(summary);
+          for (const source of sources) {
+            const excerpt = document.createElement("div");
+            excerpt.className = "source-item";
+            excerpt.textContent = `${source.source} · relevance ${Number(source.score).toFixed(2)}\n${source.text}`;
+            details.append(excerpt);
+          }
+          body.append(details);
+        }
+
+        article.append(avatar, body);
+        conversation.append(article);
+        article.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        return article;
+      }
+
+      input.addEventListener("input", () => { counter.textContent = `${input.value.length} / 1200`; });
+      document.querySelectorAll(".suggestions button").forEach((button) => {
+        button.addEventListener("click", () => { input.value = button.textContent; input.focus(); counter.textContent = `${input.value.length} / 1200`; });
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const question = input.value.trim();
+        if (!question || send.disabled) return;
+        addMessage("user", question);
+        input.value = "";
+        counter.textContent = "0 / 1200";
+        send.disabled = true;
+        const loading = addMessage("assistant", "Searching the guide for relevant evidence...");
+        loading.classList.add("loading");
+        try {
+          const response = await fetch("/api/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question }),
+          });
+          const result = await response.json();
+          loading.remove();
+          if (!response.ok) throw new Error(result.detail || "The request could not be completed.");
+          addMessage("assistant", result.answer, result.sources || []);
+        } catch (error) {
+          loading.remove();
+          addMessage("assistant", error.message || "The service is temporarily unavailable. Please try again.", [], true);
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      });
+    </script>
+  </body>
+</html>

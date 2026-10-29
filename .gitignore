@@ -1,0 +1,12 @@
+.venv/
+.install-temp/
+.vercel/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+.streamlit/secrets.toml
+vector_store/*
+!vector_store/.gitkeep
+data/user_uploads/
+*.log
