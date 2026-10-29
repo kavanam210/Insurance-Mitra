@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 import os
 import re
@@ -9,13 +10,15 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 from pydantic import BaseModel, Field, field_validator
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
@@ -49,6 +52,54 @@ NO_CONTEXT_ANSWER = (
 )
 
 app = FastAPI(title="Insurance Mitra", docs_url=None, redoc_url=None)
+logger = logging.getLogger(__name__)
+
+
+def _safe_diagnostic(value: Any, secret: str | None = None) -> str:
+    diagnostic = str(value).replace("\r", " ").replace("\n", " ")
+    if secret:
+        diagnostic = diagnostic.replace(secret, "[REDACTED]")
+    diagnostic = re.sub(
+        r"(?i)(api[-_ ]?key|authorization|access[-_ ]?token|password|secret)(\s*[:=]\s*|\s+)[^\s,;]+",
+        r"\1=[REDACTED]",
+        diagnostic,
+    )
+    diagnostic = re.sub(r"(?i)\bBearer\s+\S+|\bAIza[0-9A-Za-z_-]{20,}|\bAQ\.[0-9A-Za-z._-]{8,}", "[REDACTED]", diagnostic)
+    diagnostic = re.sub(r"(?i)([?&](?:key|token|access_token)=)[^&\s]+", r"\1[REDACTED]", diagnostic)
+    return diagnostic[:500]
+
+
+def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={"ok": False, "error": {"code": code, "message": message}},
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    del request
+    code = "invalid_request" if exc.status_code == 422 else "request_failed"
+    message = exc.detail if isinstance(exc.detail, str) else "The request could not be completed."
+    return _error_response(exc.status_code, code, message)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    del request, exc
+    return _error_response(422, "invalid_request", "Enter a question under 1,200 characters.")
+
+
+@app.exception_handler(Exception)
+async def unexpected_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(
+        "Unhandled API error method=%s path=%s type=%s diagnostic=%s",
+        request.method,
+        request.url.path,
+        type(exc).__name__,
+        _safe_diagnostic(exc, os.getenv("GOOGLE_API_KEY")),
+    )
+    return _error_response(500, "internal_error", "The service encountered an unexpected error. Please try again.")
 
 
 class QuestionRequest(BaseModel):
@@ -217,34 +268,34 @@ def answer_question(question: str) -> dict[str, Any]:
         f"[{source['source']}]\n{source['text']}"
         for source in sources
     )
-
-    # Keep the Gemini client open until the request finishes.
-    client = genai.Client(api_key=api_key)
-
     try:
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=(
-                f"Retrieved evidence:\n{evidence}\n\n"
-                f"User question:\n{question}"
-            ),
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                temperature=0.2,
-            ),
-        )
-
+        # Keep the Gemini client open until the request finishes.
+        with genai.Client(api_key=api_key) as client:
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=(
+                    f"Retrieved evidence:\n{evidence}\n\n"
+                    f"User question:\n{question}"
+                ),
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_INSTRUCTION,
+                    temperature=0.2,
+                ),
+            )
     except APIError as exc:
+        logger.error(
+            "Gemini API request failed code=%s status=%s message=%s",
+            exc.code,
+            _safe_diagnostic(exc.status, api_key),
+            _safe_diagnostic(exc.message, api_key),
+        )
         raise HTTPException(
             status_code=502,
             detail=(
                 "Gemini could not complete the request. "
-                "Check the configured model and API access."
+                "Please try again."
             ),
         ) from exc
-
-    finally:
-        client.close()
 
     answer = getattr(response, "text", None)
 
@@ -267,19 +318,18 @@ def home() -> FileResponse:
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> dict[str, Any]:
+    return {"ok": True, "data": {"status": "ok"}}
 
 
 @app.post("/api/ask")
 def ask(payload: QuestionRequest) -> dict[str, Any]:
     try:
-        return answer_question(payload.question)
+        return {"ok": True, "data": answer_question(payload.question)}
 
     except FileNotFoundError as exc:
+        logger.error("Knowledge guide unavailable type=%s", type(exc).__name__)
         raise HTTPException(
             status_code=500,
-            detail=str(exc),
+            detail="The insurance knowledge guide is unavailable.",
         ) from exc
-
-
