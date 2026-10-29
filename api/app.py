@@ -1,4 +1,4 @@
-```python
+
 from __future__ import annotations
 
 import math
@@ -281,4 +281,5 @@ def ask(payload: QuestionRequest) -> dict[str, Any]:
             status_code=500,
             detail=str(exc),
         ) from exc
-```
+
+
